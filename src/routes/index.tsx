@@ -5,9 +5,10 @@ import Clock from 'components/Clock'
 import { Button } from 'components/ui'
 
 import { useAppContext } from 'context/app'
-import { differenceInHours, format, formatRelative } from 'date-fns'
+import { formatRelative } from 'date-fns'
 import { Alarm } from 'lib/alarm-clock'
-import { AlarmCheck, Clock1, Clock10Icon, Plus, X } from 'lucide-react'
+import { sendMassage } from 'lib/analytics'
+import { AlarmCheck, HelpCircle, Plus, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 interface IndexRouteProps {}
@@ -16,7 +17,7 @@ const IndexRoute: FunctionComponent<IndexRouteProps> = () => {
   const [activeAlarm, setActiveAlarm] = useState<Alarm | null>(null)
   const [nextAlarm, setNextAlarm] = useState<[Alarm, Date] | null>(null)
   const { alarmClock } = useAppContext()
-  const [alarms, setAlarms] = useState<Alarm[]>(alarmClock.getAlarms())
+  const [alarms] = useState<Alarm[]>(alarmClock.getAlarms())
 
   useEffect(() => {
     const unsubscribe = alarmClock.onInterval((_, alarm) => {
@@ -38,6 +39,10 @@ const IndexRoute: FunctionComponent<IndexRouteProps> = () => {
         alert('⏱️ Alarm!')
       }
   }, [activeAlarm])
+
+  useEffect(() => {
+    sendMassage('Alarm Clock', 'Someone checked out!')
+  }, [])
 
   const handleStopAlarm = () => {
     if (!activeAlarm) return
@@ -84,8 +89,14 @@ const IndexRoute: FunctionComponent<IndexRouteProps> = () => {
             <div className="flex flex-col items-center gap-16">
               <div className="fap-8 flex flex-col items-center gap-4">
                 <AlarmCheck className="mb-8 h-16 w-16 animate-bounce" />
-                <div className="flex text-5xl">
-                  <div className="font-bold">
+                <div className="flex flex-col items-center gap-6">
+                  <div className="text-5xl font-bold">
+                    {new Date().getHours()} :{' '}
+                    {new Date().getMinutes().toLocaleString('en-US', {
+                      minimumIntegerDigits: 2,
+                    })}
+                  </div>
+                  <div className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold">
                     {activeAlarm.hour} :{' '}
                     {activeAlarm.minute.toLocaleString('en-US', {
                       minimumIntegerDigits: 2,
@@ -122,6 +133,12 @@ const IndexRoute: FunctionComponent<IndexRouteProps> = () => {
           </div>
         )}
       </div>
+      <Link
+        className="fixed right-2 top-2 p-2 opacity-50 transition hover:opacity-80"
+        to="/about"
+      >
+        <HelpCircle className="h-5 w-5" />
+      </Link>
     </div>
   )
 }
