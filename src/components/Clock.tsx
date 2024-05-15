@@ -14,7 +14,7 @@ const Clock: FunctionComponent<ClockProps> = () => {
     }
   }, [])
   return (
-    <div className="py-4">
+    <div className="py-3">
       <h1 className="text-3xl font-bold">{time.toLocaleTimeString()}</h1>
     </div>
   )

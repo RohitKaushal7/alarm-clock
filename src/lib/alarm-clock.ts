@@ -1,12 +1,22 @@
-import { differenceInMinutes } from 'date-fns'
+import { addDays, differenceInMinutes } from 'date-fns'
 import { nanoid } from 'nanoid'
+
+export type WeekDays = [
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+]
 
 export interface Alarm {
   id: string
   hour: number
   minute: number
   snooze: number
-  weekdays: [boolean, boolean, boolean, boolean, boolean, boolean, boolean] // SMTWTFS - 0111110 - Monday-Friday
+  weekdays: WeekDays // SMTWTFS - 0111110 - Monday-Friday
 }
 
 export class AlarmClock {
@@ -26,7 +36,7 @@ export class AlarmClock {
     if (!this.#alarmInterval) {
       this.#alarmInterval = setInterval(() => {
         const now = this.getCurrentTime()
-        const alarm = this.getAlarm(now)
+        const alarm = this.getAlarmAtTime(now)
         this.#intervalCallbacks.forEach((cb) => cb(now, alarm))
       }, 1000)
     }
@@ -42,11 +52,42 @@ export class AlarmClock {
     }
   }
 
-  getAlarm(date: Date): Alarm | undefined {
+  getAlarmAtTime(date: Date): Alarm | undefined {
     const key = `${date.getDay()},${date.getHours()},${date.getMinutes()}`
     return this.#alarmIndexMap[key]
       ? this.#alarms.find((a) => a.id === this.#alarmIndexMap[key])
       : undefined
+  }
+
+  getAlarmById(id: string): Alarm | undefined {
+    return this.#alarms.find((a) => a.id === id)
+  }
+
+  getNextAlarm(): [Alarm, Date] | null {
+    const now = this.getCurrentTime()
+    for (let i = 0; i < 7; ++i) {
+      const day = (now.getDay() + i) % 7
+      const alarmsThisDay = this.#alarms.filter((a) => a.weekdays[day])
+      const distances = alarmsThisDay.map((a) => {
+        let alarmTime = new Date()
+        alarmTime = addDays(alarmTime, i)
+        alarmTime.setHours(a.hour)
+        alarmTime.setMinutes(a.minute)
+        return differenceInMinutes(alarmTime, now)
+      })
+      const minDistanceIndex = distances.indexOf(
+        Math.min(...distances.filter((d) => d >= 0))
+      )
+      if (minDistanceIndex !== -1) {
+        const nextAlarm = alarmsThisDay[minDistanceIndex]
+        let alarmTime = new Date()
+        alarmTime = addDays(alarmTime, i)
+        alarmTime.setHours(nextAlarm.hour)
+        alarmTime.setMinutes(nextAlarm.minute)
+        return [alarmsThisDay[minDistanceIndex], alarmTime]
+      }
+    }
+    return null
   }
 
   getAlarms(): Alarm[] {
@@ -60,6 +101,7 @@ export class AlarmClock {
   setAlarm(
     alarm: Omit<Alarm, 'id' | 'snooze'> & { id?: string; snooze?: number }
   ) {
+    alarm.snooze = 0
     if (alarm.id) {
       // editing existing alarm
       const index = this.#alarms.findIndex((a) => a.id === alarm.id)
@@ -71,7 +113,6 @@ export class AlarmClock {
     } else {
       // new alarm
       alarm.id = nanoid()
-      alarm.snooze = 0
       this.#alarms.push(alarm as Alarm)
     }
     this.saveAlarms()

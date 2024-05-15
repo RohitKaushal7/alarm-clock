@@ -7,6 +7,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import IndexRoute from 'routes'
 import Root from 'routes/__root'
 import About from 'routes/about'
+import AlarmEdit from 'routes/alarm/[id]'
 import Page404 from 'routes/page404'
 
 const router = createBrowserRouter([
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
       {
         path: '',
         element: <IndexRoute />,
+      },
+      {
+        path: 'alarm/:id',
+        element: <AlarmEdit />,
       },
       {
         path: 'about',

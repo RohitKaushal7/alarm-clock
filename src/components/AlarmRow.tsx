@@ -17,7 +17,7 @@ const AlarmRow: FunctionComponent<AlarmRowProps> = ({ alarm, onClick }) => {
       className="cursor-pointer rounded-lg bg-neutral-900 p-4"
       onClick={() => onClick?.(alarm.id)}
     >
-      <div className="text-3xl font-bold">{format(time, 'h:mm aaa')}</div>
+      <div className="text-3xl font-bold">{format(time, 'HH:mm')}</div>
       <div className="mt-1 text-xs text-neutral-400">
         {WEEKDAYS.filter((_, index) => alarm.weekdays[index]).join(', ')}
       </div>
