@@ -1,11 +1,11 @@
 import { differenceInMinutes } from 'date-fns'
 import { nanoid } from 'nanoid'
 
-interface Alarm {
+export interface Alarm {
   id: string
   hour: number
   minute: number
-  snooze?: number
+  snooze: number
   weekdays: [boolean, boolean, boolean, boolean, boolean, boolean, boolean] // SMTWTFS - 0111110 - Monday-Friday
 }
 
@@ -13,21 +13,33 @@ export class AlarmClock {
   #alarms: Alarm[] = []
   #alarmInterval: any | null = null
   #alarmIndexMap: { [date: string]: string } = {} // date to Id lookup [Weekday, Hour, Minute] -> ID ::: { '1,11,30': '1234567890' }
+  #intervalCallbacks: ((now: Date, alarm?: Alarm) => void)[] = []
+
+  maxSnoozeMinutes = 2
+  snoozeInterval = 1
 
   constructor() {
     this.loadAlarms()
   }
 
-  onInterval(cb: (now: Date, alarm?: Alarm) => void) {
-    if (this.#alarmInterval) {
-      clearInterval(this.#alarmInterval)
+  onInterval(cb: (now: Date, alarm?: Alarm) => void): () => void {
+    if (!this.#alarmInterval) {
+      this.#alarmInterval = setInterval(() => {
+        const now = this.getCurrentTime()
+        const alarm = this.getAlarm(now)
+        this.#intervalCallbacks.forEach((cb) => cb(now, alarm))
+      }, 1000)
     }
-
-    this.#alarmInterval = setInterval(() => {
-      const now = this.getCurrentTime()
-      const alarm = this.getAlarm(now)
-      cb(now, alarm)
-    }, 1000)
+    this.#intervalCallbacks.push(cb)
+    return () => {
+      this.#intervalCallbacks = this.#intervalCallbacks.filter(
+        (cb) => cb !== cb
+      )
+      if (this.#intervalCallbacks.length === 0) {
+        clearInterval(this.#alarmInterval)
+        this.#alarmInterval = null
+      }
+    }
   }
 
   getAlarm(date: Date): Alarm | undefined {
@@ -45,7 +57,9 @@ export class AlarmClock {
     return new Date()
   }
 
-  setAlarm(alarm: Omit<Alarm, 'id'> & { id?: string }) {
+  setAlarm(
+    alarm: Omit<Alarm, 'id' | 'snooze'> & { id?: string; snooze?: number }
+  ) {
     if (alarm.id) {
       // editing existing alarm
       const index = this.#alarms.findIndex((a) => a.id === alarm.id)
@@ -57,6 +71,7 @@ export class AlarmClock {
     } else {
       // new alarm
       alarm.id = nanoid()
+      alarm.snooze = 0
       this.#alarms.push(alarm as Alarm)
     }
     this.saveAlarms()
@@ -73,8 +88,8 @@ export class AlarmClock {
     const index = this.#alarms.findIndex((a) => a.id === id)
     if (index !== -1) {
       const alarm = this.#alarms[index]
-      if (!alarm.snooze) alarm.snooze = 0
-      alarm.snooze += 5
+      alarm.snooze += this.snoozeInterval
+      if (alarm.snooze > this.maxSnoozeMinutes) alarm.snooze = 0
       this.#alarms[index] = alarm
       this.saveAlarms()
     }
@@ -90,7 +105,7 @@ export class AlarmClock {
       // handling the snooze factor
       const alarmTime = new Date()
       alarmTime.setHours(alarm.hour)
-      alarmTime.setMinutes(alarm.minute + (alarm.snooze || 0))
+      alarmTime.setMinutes(alarm.minute + alarm.snooze)
 
       const shouldIncrementWeekday = alarmTime.getHours() < alarm.hour
 
@@ -105,7 +120,11 @@ export class AlarmClock {
   stopAlarm(id: string) {
     const index = this.#alarms.findIndex((a) => a.id === id)
     if (index !== -1) {
-      this.#alarms[index].snooze = 0
+      this.#alarms[index].snooze = -this.snoozeInterval
+      setTimeout(() => {
+        const index = this.#alarms.findIndex((a) => a.id === id)
+        if (index !== -1) this.#alarms[index].snooze = 0
+      }, 1000 * 65) // after minimum 1 minute
       this.saveAlarms()
     }
   }
@@ -126,8 +145,11 @@ export class AlarmClock {
         _alarms.forEach((alarm: Alarm) => {
           const alarmTime = new Date()
           alarmTime.setHours(alarm.hour)
-          alarmTime.setMinutes(alarm.minute + (alarm.snooze || 0))
-          if (alarm.snooze && differenceInMinutes(now, alarmTime) > 15) {
+          alarmTime.setMinutes(alarm.minute + alarm.snooze)
+          if (
+            alarm.snooze &&
+            differenceInMinutes(now, alarmTime) > this.maxSnoozeMinutes
+          ) {
             alarm.snooze = 0
           }
         })
