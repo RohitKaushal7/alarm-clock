@@ -52,7 +52,9 @@ const IndexRoute: FunctionComponent<IndexRouteProps> = () => {
   }, [activeAlarm])
 
   useEffect(() => {
-    sendMassage('Alarm Clock', 'Someone checked out!')
+    window.addEventListener('load', () => {
+      sendMassage('Alarm Clock', 'Someone checked out!')
+    })
   }, [])
 
   const handleStopAlarm = () => {
