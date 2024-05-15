@@ -13,6 +13,7 @@ export type WeekDays = [
 
 export interface Alarm {
   id: string
+  title?: string
   hour: number
   minute: number
   snooze: number

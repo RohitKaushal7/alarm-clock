@@ -1,6 +1,7 @@
 import { FunctionComponent, useEffect, useRef, useState } from 'react'
 
 import { Button } from 'components/ui'
+import { Input } from 'components/ui/input'
 import { TimePickerInput } from 'components/ui/time-picker'
 import WeekDaysPicker from 'components/ui/weekdays-picker'
 
@@ -26,6 +27,7 @@ const AlarmEdit: FunctionComponent<AlarmEditProps> = () => {
   alarmTime.setMinutes(alarm?.minute || 0)
 
   const [date, setDate] = useState<Date | undefined>(alarmTime)
+  const [title, setTitle] = useState<string>(alarm?.title || '')
   const [weekdays, setWeekdays] = useState<WeekDays>(
     alarm?.weekdays || [false, false, false, false, false, false, false]
   )
@@ -55,6 +57,7 @@ const AlarmEdit: FunctionComponent<AlarmEditProps> = () => {
   const handleSave = () => {
     alarmClock.setAlarm({
       id,
+      title,
       hour: date?.getHours() || 0,
       minute: date?.getMinutes() || 0,
       weekdays,
@@ -70,24 +73,34 @@ const AlarmEdit: FunctionComponent<AlarmEditProps> = () => {
   return (
     <div className="relative mx-auto flex  min-h-screen max-w-2xl flex-col p-4">
       <h1 className="mt-16 text-3xl">Edit Alarm</h1>
-      <div className="mt-8 flex w-full items-center justify-center gap-4 rounded-lg bg-neutral-900 p-4 py-8 text-3xl">
-        <TimePickerInput
-          className="text-3xl font-bold"
-          picker="hours"
-          date={date}
-          setDate={setDate}
-          ref={hourRef}
-          onRightFocus={() => minuteRef.current?.focus()}
-        />
-        <div>:</div>
-        <TimePickerInput
-          className="text-3xl font-bold"
-          picker="minutes"
-          date={date}
-          setDate={setDate}
-          ref={minuteRef}
-          onLeftFocus={() => hourRef.current?.focus()}
-        />
+      <div className="mt-8 flex w-full flex-col items-center justify-center gap-4 rounded-lg bg-neutral-900 p-4 py-8 text-3xl">
+        <div className="flex w-full items-center justify-center gap-4 text-3xl">
+          <TimePickerInput
+            className="text-3xl font-bold"
+            picker="hours"
+            date={date}
+            setDate={setDate}
+            ref={hourRef}
+            onRightFocus={() => minuteRef.current?.focus()}
+          />
+          <div>:</div>
+          <TimePickerInput
+            className="text-3xl font-bold"
+            picker="minutes"
+            date={date}
+            setDate={setDate}
+            ref={minuteRef}
+            onLeftFocus={() => hourRef.current?.focus()}
+          />
+        </div>
+        <div className="mt-8 w-full">
+          <Input
+            className="w-full border-none text-center outline-none"
+            placeholder="Alarm Title..."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
       </div>
       <div className="mt-2 flex w-full flex-col gap-4 rounded-lg bg-neutral-900 p-4">
         <div className="font-semibold">Repeat</div>

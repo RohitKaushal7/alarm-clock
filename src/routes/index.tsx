@@ -51,8 +51,10 @@ const IndexRoute: FunctionComponent<IndexRouteProps> = () => {
   }
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col p-4">
-      <h1 className="mt-16 text-3xl font-bold">Alarm</h1>
+    <div className="relative mx-auto flex max-w-2xl flex-col p-4">
+      <h1 className="sticky top-0 mt-16 bg-black py-4 text-3xl font-bold">
+        Alarm
+      </h1>
       {nextAlarm && (
         <h1 className="text-xs text-neutral-400">
           Next ring {formatRelative(nextAlarm[1], new Date())}
@@ -68,32 +70,34 @@ const IndexRoute: FunctionComponent<IndexRouteProps> = () => {
       </div>
 
       {activeAlarm && (
-        <div className="z-100 fixed inset-0 flex flex-col items-center justify-end gap-16 overflow-hidden bg-black/80 p-8 py-32 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-16">
-            <div className="fap-8 flex flex-col items-center gap-4">
-              <AlarmCheck className="mb-8 h-16 w-16 animate-bounce" />
-              <div className="flex text-5xl">
-                <div className="font-bold">
-                  {activeAlarm.hour} :{' '}
-                  {activeAlarm.minute.toLocaleString('en-US', {
-                    minimumIntegerDigits: 2,
-                  })}
+        <div className="z-100 fixed inset-0 flex flex-col justify-end bg-black/80 backdrop-blur-sm">
+          <div className="mx-auto flex max-w-2xl flex-col items-center justify-end gap-16 overflow-hidden p-8 py-32">
+            <div className="flex flex-col items-center gap-16">
+              <div className="fap-8 flex flex-col items-center gap-4">
+                <AlarmCheck className="mb-8 h-16 w-16 animate-bounce" />
+                <div className="flex text-5xl">
+                  <div className="font-bold">
+                    {activeAlarm.hour} :{' '}
+                    {activeAlarm.minute.toLocaleString('en-US', {
+                      minimumIntegerDigits: 2,
+                    })}
+                  </div>
                 </div>
+                <div className="text-center">{activeAlarm.title}</div>
               </div>
-              <div>Hello world!</div>
+              {alarmClock.maxSnoozeMinutes >=
+                activeAlarm.snooze + alarmClock.snoozeInterval && (
+                <Button variant="secondary" onClick={handleSnoozeAlarm}>
+                  Snooze (+{alarmClock.snoozeInterval} mins)
+                </Button>
+              )}
             </div>
-            {alarmClock.maxSnoozeMinutes >=
-              activeAlarm.snooze + alarmClock.snoozeInterval && (
-              <Button variant="secondary" onClick={handleSnoozeAlarm}>
-                Snooze (+{alarmClock.snoozeInterval} mins)
-              </Button>
-            )}
-          </div>
-          <div
-            onClick={handleStopAlarm}
-            className="w-fit animate-pulse rounded-full bg-primary p-2"
-          >
-            <X className="h-16 w-16" />
+            <div
+              onClick={handleStopAlarm}
+              className="w-fit animate-pulse rounded-full bg-primary p-2"
+            >
+              <X className="h-16 w-16" />
+            </div>
           </div>
         </div>
       )}
