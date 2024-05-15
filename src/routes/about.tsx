@@ -1,6 +1,6 @@
 import { FunctionComponent, useEffect } from 'react'
 
-import { Button } from 'components/ui'
+import { Button } from 'components/ui/button'
 
 import { sendMassage } from 'lib/analytics'
 import { Link } from 'react-router-dom'

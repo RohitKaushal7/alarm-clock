@@ -1,6 +1,6 @@
 import { FunctionComponent, useEffect, useRef, useState } from 'react'
 
-import { Button } from 'components/ui'
+import { Button } from 'components/ui/button'
 import { Input } from 'components/ui/input'
 import { TimePickerInput } from 'components/ui/time-picker'
 import WeekDaysPicker from 'components/ui/weekdays-picker'

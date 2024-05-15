@@ -2,7 +2,7 @@ import { FunctionComponent, useEffect, useRef, useState } from 'react'
 
 import AlarmRow from 'components/AlarmRow'
 import Clock from 'components/Clock'
-import { Button } from 'components/ui'
+import { Button } from 'components/ui/button'
 
 import { useAppContext } from 'context/app'
 import { formatRelative } from 'date-fns'
