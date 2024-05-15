@@ -7,7 +7,7 @@ import { Button } from 'components/ui'
 import { useAppContext } from 'context/app'
 import { differenceInHours, format, formatRelative } from 'date-fns'
 import { Alarm } from 'lib/alarm-clock'
-import { AlarmCheck, Plus, X } from 'lucide-react'
+import { AlarmCheck, Clock1, Clock10Icon, Plus, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 interface IndexRouteProps {}
@@ -50,16 +50,25 @@ const IndexRoute: FunctionComponent<IndexRouteProps> = () => {
     setActiveAlarm(null)
   }
 
+  alarms.sort((a, b) => {
+    if (a.hour === b.hour) {
+      return a.minute - b.minute
+    }
+    return a.hour - b.hour
+  })
+
   return (
     <div className="relative mx-auto flex max-w-2xl flex-col p-4">
-      <h1 className="sticky top-0 mt-16 bg-black py-4 text-3xl font-bold">
+      <h1 className="z-90 sticky top-0 mt-16 bg-black py-4 text-3xl font-bold">
         Alarm
       </h1>
-      {nextAlarm && (
-        <h1 className="text-xs text-neutral-400">
-          Next ring {formatRelative(nextAlarm[1], new Date())}
-        </h1>
-      )}
+      <h1 className="text-xs text-neutral-400">
+        {nextAlarm ? (
+          <span>Next ring {formatRelative(nextAlarm[1], new Date())}</span>
+        ) : (
+          <span>No upcoming alarms for now!</span>
+        )}
+      </h1>
       <Clock />
       <div className="py-3">
         <Link to="/alarm/new">
@@ -107,6 +116,11 @@ const IndexRoute: FunctionComponent<IndexRouteProps> = () => {
             <AlarmRow alarm={alarm} key={alarm.id} />
           </Link>
         ))}
+        {alarms.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-900 p-4 py-8 text-3xl text-neutral-700">
+            <div className="text-center">No Alarms Set!</div>
+          </div>
+        )}
       </div>
     </div>
   )
