@@ -1,4 +1,4 @@
-import { FunctionComponent, useEffect, useState } from 'react'
+import { FunctionComponent, useEffect, useRef, useState } from 'react'
 
 import AlarmRow from 'components/AlarmRow'
 import Clock from 'components/Clock'
@@ -8,6 +8,7 @@ import { useAppContext } from 'context/app'
 import { formatRelative } from 'date-fns'
 import { Alarm } from 'lib/alarm-clock'
 import { sendMassage } from 'lib/analytics'
+import { AlarmRing } from 'lib/audio'
 import { AlarmCheck, HelpCircle, Plus, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -18,6 +19,8 @@ const IndexRoute: FunctionComponent<IndexRouteProps> = () => {
   const [nextAlarm, setNextAlarm] = useState<[Alarm, Date] | null>(null)
   const { alarmClock } = useAppContext()
   const [alarms] = useState<Alarm[]>(alarmClock.getAlarms())
+
+  const timeOutRef = useRef<any>()
 
   useEffect(() => {
     const unsubscribe = alarmClock.onInterval((_, alarm) => {
@@ -34,10 +37,18 @@ const IndexRoute: FunctionComponent<IndexRouteProps> = () => {
   }, [alarms, alarmClock])
 
   useEffect(() => {
-    if (activeAlarm)
+    if (activeAlarm) {
+      AlarmRing.play()
       if (document.hidden) {
-        alert('⏱️ Alarm!')
+        if (timeOutRef.current) clearTimeout(timeOutRef.current)
+        timeOutRef.current = setTimeout(() => {
+          if (document.hidden) alert('⏱️ Alarm!')
+        }, 12000)
       }
+    } else {
+      if (timeOutRef.current) clearTimeout(timeOutRef.current)
+      AlarmRing.pause()
+    }
   }, [activeAlarm])
 
   useEffect(() => {
